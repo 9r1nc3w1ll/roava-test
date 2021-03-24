@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"roava-test/common"
 	"roava-test/pb"
 
 	"github.com/go-chi/chi"
@@ -20,11 +21,11 @@ func main() {
 	destroyerServerAddress := "0.0.0.0:5000"
 
 	// Connect to Destroyer
-	conn, e := grpc.Dial(destroyerServerAddress, grpc.WithInsecure())
-	if e != nil {
-		log.Fatalf("Failed to connect with destroyer. %v", e.Error())
-	}
+	conn, err := grpc.Dial(destroyerServerAddress, grpc.WithInsecure())
+	common.ExitOnError(err, "Failed to connect with destroyer. %v")
 	defer conn.Close()
+
+	// Destroyer gRCP Client
 	destroyerClient = pb.NewDestroyerClient(conn)
 
 	// Setup HTTP endpoints
