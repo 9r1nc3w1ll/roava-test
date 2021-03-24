@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: api
+    build: '.'
+    tty: true
+    restart: 'no'
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/code
+    networks:
+      - app-network
+    depends_on:
+      - db
+      - pulsar
+  pulsar:
+    container_name: pulsar
+    image: apachepulsar/pulsar:latest
+    command: bin/pulsar standalone
+    expose:
+      - 6650
+      - 8080
+    restart: 'no'
+    networks:
+      - app-network
+  db:
+    container_name: db
+    image: postgres:latest
+    restart: 'no'
+    environment:
+      POSTGRES_DB: roava_test
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+volumes:
+  db-data:
