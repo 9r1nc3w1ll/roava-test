@@ -11,6 +11,7 @@ import (
 	"github.com/apache/pulsar-client-go/pulsar"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -38,9 +39,12 @@ func (s *destroyer) AcquireTargets(ctx context.Context, req *pb.AcquireTargetsRe
 		})
 
 		// Create Pulsar producer
-		producer, err := s.PubSubClient.CreateProducer(pulsar.ProducerOptions{
+		producer, e := s.PubSubClient.CreateProducer(pulsar.ProducerOptions{
 			Topic: "targets-acquired-event",
 		})
+		if e != nil {
+			return &emptypb.Empty{}, e
+		}
 
 		// Build message payload
 		payload := pb.TargetsAcquiredPayload{
@@ -50,15 +54,15 @@ func (s *destroyer) AcquireTargets(ctx context.Context, req *pb.AcquireTargetsRe
 			CreatedOn: time.Now().UTC().Format(time.RFC3339),
 		}
 
+		jsonBytes, e := protojson.Marshal(&payload)
+		if e != nil {
+			return &emptypb.Empty{}, e
+		}
+
 		// Send pub-sub message
 		producer.Send(s.Ctx, &pulsar.ProducerMessage{
-			Payload: []byte(payload.String()),
+			Payload: jsonBytes,
 		})
-
-		// Handles errors
-		if err != nil {
-			return &emptypb.Empty{}, err
-		}
 
 		// Close producer
 		defer producer.Close()
