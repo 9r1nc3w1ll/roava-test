@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package pb;
+option go_package = "/pb";
+
+import "google/protobuf/empty.proto";
+
+service Destroyer {
+  rpc AcquireTargets(AcquireTargetRequest) returns (.google.protobuf.Empty);
+  rpc MethodName (Request) returns (Response);
+}
+
+message AcquireTargetRequest {
+  int64 number = 1;
+}

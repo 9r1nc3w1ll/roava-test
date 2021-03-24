@@ -1,0 +1,12 @@
+
+syntax = "proto3";
+
+package pb;
+option go_package = "/pb";
+
+message Target {
+  string id = 1;
+  string message = 2;
+  string created_on = 4;
+  string updated_on = 5;
+}
