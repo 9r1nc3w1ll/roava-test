@@ -6,8 +6,8 @@ option go_package = "/pb";
 import "google/protobuf/empty.proto";
 
 service Destroyer {
-  rpc AcquireTargets(AcquireTargetRequest) returns (.google.protobuf.Empty);
-  rpc MethodName (Request) returns (Response);
+  rpc AcquireTargets(AcquireTargetRequest) returns (google.protobuf.Empty);
+  rpc ListTargets (google.protobuf.Empty) returns (google.protobuf.Empty);
 }
 
 message AcquireTargetRequest {
