@@ -4,12 +4,20 @@ package pb;
 option go_package = "/pb";
 
 import "google/protobuf/empty.proto";
+import "target_message.proto";
 
 service Destroyer {
-  rpc AcquireTargets(AcquireTargetRequest) returns (google.protobuf.Empty);
+  rpc AcquireTargets(AcquireTargetsRequest) returns (google.protobuf.Empty);
   rpc ListTargets (google.protobuf.Empty) returns (google.protobuf.Empty);
 }
 
-message AcquireTargetRequest {
+message TargetsAcquiredPayload {
+  string id = 1;
+  string name = 2;
+  repeated Target data = 3;
+  string created_on = 4;
+}
+
+message AcquireTargetsRequest {
   int64 number = 1;
 }
