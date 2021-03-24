@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"roava-test/pb"
 	"strconv"
 
@@ -54,7 +56,7 @@ func main() {
 			}
 		}
 
-		req := &pb.AcquireTargetRequest{
+		req := &pb.AcquireTargetsRequest{
 			Number: number,
 		}
 
@@ -74,9 +76,30 @@ func main() {
 		Handler: r,
 	}
 
-	if e := srv.ListenAndServe(); e != http.ErrServerClosed {
-		log.Fatalf("HTTP server listen and serve error: %v", e)
+	// This blocks the main routine so, let it run separately.
+	go func() {
+		if e := srv.ListenAndServe(); e != http.ErrServerClosed {
+			log.Fatalf("HTTP server listen and serve error: %v", e)
+		}
+	}()
+
+	// Print out routes
+	if err := chi.Walk(r, func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
+		fmt.Printf("➪ %s %s\n", method, route)
+		return nil
+	}); err != nil {
+		log.Panicf("Chi walk err: %s\n", err.Error())
 	}
+
+	/*
+		Prevent destroyer from shutting down when main routine is done
+		because gRPC is listening on another routine
+	*/
+	sigint := make(chan os.Signal, 1)
+	signal.Notify(sigint, os.Interrupt)
+
+	<-sigint
+	log.Println("Destroyer shutting down")
 }
 
 // Handle internal server errors to avoid repeatition

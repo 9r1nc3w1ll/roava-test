@@ -62,7 +62,7 @@ func main() {
 		}
 	}()
 
-	//
+	// Prints info to CLI
 	log.Printf("Destroyer is running on port %d\n", port)
 
 	/*
