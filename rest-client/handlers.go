@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"roava-test/pb"
@@ -33,7 +34,7 @@ func acquireTargets(rw http.ResponseWriter, r *http.Request) {
 		Number: number,
 	}
 
-	_, e := destroyer.AcquireTargets(ctx, req)
+	_, e := destroyerClient.AcquireTargets(context.Background(), req)
 	if e != nil {
 		internalError(rw, r, fmt.Sprintf("Request failed with error: %v", e.Error()))
 		return

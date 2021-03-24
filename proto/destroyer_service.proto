@@ -21,3 +21,5 @@ message TargetsAcquiredPayload {
 message AcquireTargetsRequest {
   int64 number = 1;
 }
+
+// TODO: Create responses (convention)

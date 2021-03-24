@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS targets (
+  id VARCHAR(50) UNIQUE NOT NULL,
+  message VARCHAR(200) NULL,
+  created_on VARCHAR(50) NOT NULL,
+	updated_on VARCHAR(50) NOT NULL
+);

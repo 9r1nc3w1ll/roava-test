@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net"
@@ -11,7 +10,6 @@ import (
 
 	pb "roava-test/pb"
 
-	// "github.com/jackc/pgx/v4"
 	"github.com/apache/pulsar-client-go/pulsar"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -19,45 +17,35 @@ import (
 
 func main() {
 	port := 5000
-	psUrl := "pulsar://pulsar:6650"
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// _, e := pgx.Connect(ctx, "") //TODO: Setup PGSQL connection
-
-	// if e != nil {
-	// 	log.Fatalf("Database initialization error %v", e.Error())
-	// }
+	pulsarUrl := "pulsar://pulsar:6650"
 
 	// Create pub-sub client, using pulsar connection
-	pubSub, e := pulsar.NewClient(pulsar.ClientOptions{
-		URL:              psUrl,
+	pubSubClient, err := pulsar.NewClient(pulsar.ClientOptions{
+		URL:              pulsarUrl,
 		OperationTimeout: 5 * time.Second,
 	})
 
-	if e != nil {
-		log.Fatalf("Could not instantiate Pulsar client: %v", e)
+	if err != nil {
+		log.Fatalf("Could not instantiate Pulsar client: %v", err)
 	}
 
-	defer pubSub.Close()
+	defer pubSubClient.Close()
 
-	listen, e := net.Listen("tcp", fmt.Sprintf(":%d", port))
-	if e != nil {
-		log.Fatalf("Failed to listen . %v", e.Error())
+	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		log.Fatalf("Failed to listen . %v", err.Error())
 	}
 
-	s := grpc.NewServer()
+	server := grpc.NewServer()
 
-	pb.RegisterDestroyerServer(s, &destroyer{
-		Ctx:          ctx,
-		PubSubClient: pubSub,
+	pb.RegisterDestroyerServer(server, &destroyer{
+		PubSubClient: pubSubClient,
 	})
-	reflection.Register(s)
+	reflection.Register(server)
 
 	// gRCP blocks main routine so I move it to it's on routine
 	go func() {
-		if e := s.Serve(listen); e != nil {
+		if e := server.Serve(listen); e != nil {
 			log.Fatalf("Failed to serve gRPC %v", e.Error())
 		}
 	}()
@@ -65,10 +53,7 @@ func main() {
 	// Prints info to CLI
 	log.Printf("Destroyer is running on port %d\n", port)
 
-	/*
-		Prevent destroyer from shutting down when main routine is done
-		because gRPC is listening on another routine
-	*/
+	// Prevents main routine exit
 	sigint := make(chan os.Signal, 1)
 	signal.Notify(sigint, os.Interrupt)
 

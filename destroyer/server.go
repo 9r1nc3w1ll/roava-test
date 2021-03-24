@@ -17,7 +17,6 @@ import (
 
 // destroyer - implements all destroyer methods
 type destroyer struct {
-	Ctx          context.Context
 	PubSubClient pulsar.Client
 }
 
@@ -25,7 +24,7 @@ type destroyer struct {
 func (s *destroyer) AcquireTargets(ctx context.Context, req *pb.AcquireTargetsRequest) (*empty.Empty, error) {
 	targets := []*pb.Target{}
 
-	for i := int64(0); i < req.GetNumber(); i++ {
+	for i := int64(0); i < req.Number; i++ {
 		// Create reusable Target properties
 		t := time.Now().UTC().Format(time.RFC3339)
 		id := uuid.New().String()
@@ -60,7 +59,7 @@ func (s *destroyer) AcquireTargets(ctx context.Context, req *pb.AcquireTargetsRe
 		}
 
 		// Send pub-sub message
-		producer.Send(s.Ctx, &pulsar.ProducerMessage{
+		producer.Send(context.Background(), &pulsar.ProducerMessage{
 			Payload: jsonBytes,
 		})
 

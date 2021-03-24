@@ -1,3 +1,8 @@
 # Setup Guide
-Pulsar volume is not persistent
-Postgres volume is persistent
+## Pulsar
+NB: Pulsar volume is not persistent
+
+## Database
+### Create migration
+`$ migrate create -seq -ext sql -dir migrations initialize_schema`
+NB: Postgres volume is persistent
