@@ -35,6 +35,7 @@ func main() {
 	// REST endpoints
 	r.Get("/acquire-targets", acquireTargets)
 	r.Get("/list-targets", listTargets)
+	r.Get("/do-health-checks", healthChecks)
 
 	// Start REST server
 	srv := http.Server{

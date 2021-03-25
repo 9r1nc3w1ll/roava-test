@@ -22,7 +22,7 @@ type destroyer struct {
 	PubSubClient pulsar.Client
 }
 
-// AcquireTargets - implements AcquireTargets
+// AcquireTargets - implements AcquireTargets RPC
 func (s *destroyer) AcquireTargets(ctx context.Context, req *pb.AcquireTargetsRequest) (*empty.Empty, error) {
 	targets := []*pb.Target{}
 
@@ -71,6 +71,7 @@ func (s *destroyer) AcquireTargets(ctx context.Context, req *pb.AcquireTargetsRe
 	return &empty.Empty{}, nil
 }
 
+// ListTargets - Implements ListTargets RPC
 func (s *destroyer) ListTargets(ctx context.Context, _ *empty.Empty) (*pb.ListTargetsResponse, error) {
 	res := pb.ListTargetsResponse{}
 	rows, err := s.DbConn.Query(context.Background(), "SELECT id, message, created_on, updated_on FROM targets")

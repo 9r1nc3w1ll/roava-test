@@ -4,26 +4,45 @@ package pb;
 option go_package = "/pb";
 
 import "google/protobuf/empty.proto";
-import "target_message.proto";
+import "target.proto";
 
-service Destroyer {
-  rpc AcquireTargets(AcquireTargetsRequest) returns (google.protobuf.Empty);
-  rpc ListTargets (google.protobuf.Empty) returns (ListTargetsResponse);
+service destroyer {
+  rpc acquire_targets(acquire_targets_request) returns (google.protobuf.Empty);
+  rpc list_targets (google.protobuf.Empty) returns (list_targets_response);
+  rpc health_check(google.protobuf.Empty) returns (health_check_response);
+  rpc service_readiness(google.protobuf.Empty) returns (service_readiness_response);
 }
 
-message TargetsAcquiredPayload {
+message targets_acquired_payload {
   string id = 1;
   string name = 2;
-  repeated Target data = 3;
+  repeated target data = 3;
   string created_on = 4;
 }
 
-message AcquireTargetsRequest {
+message acquire_targets_request {
   int64 number = 1;
 }
 
-message ListTargetsResponse {
-  repeated Target data = 1;
+message list_targets_response {
+  repeated target data = 1;
 }
 
-// TODO: Create responses (convention)
+message health_check_response {
+  string id = 1;
+  string service = 2;
+  string timestamp = 3;
+}
+
+message service_readiness_response {
+  string id = 1;
+  string service = 2;
+  repeated dependency_status dependencies = 3;
+  string timestamp = 4;
+}
+
+message dependency_status {
+  string name = 1;
+  string url = 2;
+  bool active = 3;
+}

@@ -58,3 +58,7 @@ func listTargets(rw http.ResponseWriter, r *http.Request) {
 	}
 	render.JSON(rw, r, res)
 }
+
+func healthChecks(rw http.ResponseWriter, r *http.Request) {
+
+}
