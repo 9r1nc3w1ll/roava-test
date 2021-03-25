@@ -60,12 +60,15 @@ func main() {
 	})
 	reflection.Register(server)
 
-	// gRCP blocks main routine so I move it to it's on routine
+	// gRPC blocks main routine so I move it to it's on routine
 	go func() {
 		if e := server.Serve(tcpListener); e != nil {
 			log.Fatalf("Failed to serve gRPC %v", e.Error())
 		}
 	}()
+
+	// Prints info to CLI
+	log.Printf("Deathstar is running on port %d\n", port)
 
 	// Prevents main routine exit
 	sigint := make(chan os.Signal, 1)

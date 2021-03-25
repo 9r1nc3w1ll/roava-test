@@ -15,18 +15,28 @@ import (
 )
 
 var destroyerClient pb.DestroyerClient
+var deathstarClient pb.DeathstarClient
 
 func main() {
 	port := ":3000"
 	destroyerServerAddress := "0.0.0.0:5000"
+	deathstarServerAddress := "0.0.0.0:5001"
 
 	// Connect to Destroyer
-	conn, err := grpc.Dial(destroyerServerAddress, grpc.WithInsecure())
+	destroyerConn, err := grpc.Dial(destroyerServerAddress, grpc.WithInsecure())
 	common.ExitOnError(err, "Failed to connect with destroyer. %v")
-	defer conn.Close()
+	defer destroyerConn.Close()
 
-	// Destroyer gRCP Client
-	destroyerClient = pb.NewDestroyerClient(conn)
+	// Destroyer gRPC Client
+	destroyerClient = pb.NewDestroyerClient(destroyerConn)
+
+	// Connect to Deathstar
+	deathstarConn, err := grpc.Dial(deathstarServerAddress, grpc.WithInsecure())
+	common.ExitOnError(err, "Failed to connect with destroyer. %v")
+	defer deathstarConn.Close()
+
+	// Deathstar gRPC client
+	deathstarClient = pb.NewDeathstarClient(deathstarConn)
 
 	// Setup HTTP endpoints
 	r := chi.NewRouter()
@@ -36,6 +46,7 @@ func main() {
 	r.Get("/acquire-targets", acquireTargets)
 	r.Get("/list-targets", listTargets)
 	r.Get("/do-health-checks", healthChecks)
+	r.Get("/service-readiness", serviceReadiness)
 
 	// Start REST server
 	srv := http.Server{

@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/golang/protobuf/ptypes/empty"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // REST request handlers
@@ -60,5 +61,43 @@ func listTargets(rw http.ResponseWriter, r *http.Request) {
 }
 
 func healthChecks(rw http.ResponseWriter, r *http.Request) {
+	destoyerHealth, err := destroyerClient.HealthCheck(context.Background(), &emptypb.Empty{})
+	if err != nil {
+		internalError(rw, r, fmt.Sprintf("Request failed with error: %v", err.Error()))
+		return
+	}
 
+	deathstarHealth, err := deathstarClient.HealthCheck(context.Background(), &emptypb.Empty{})
+	if err != nil {
+		internalError(rw, r, fmt.Sprintf("Request failed with error: %v", err.Error()))
+		return
+	}
+
+	res := map[string]interface{}{
+		"message":   "Health check results.",
+		"destroyer": destoyerHealth,
+		"deathstar": deathstarHealth,
+	}
+	render.JSON(rw, r, res)
+}
+
+func serviceReadiness(rw http.ResponseWriter, r *http.Request) {
+	destoyerReadiness, err := destroyerClient.ServiceReadiness(context.Background(), &emptypb.Empty{})
+	if err != nil {
+		internalError(rw, r, fmt.Sprintf("Request failed with error: %v", err.Error()))
+		return
+	}
+
+	deathstarReadiness, err := deathstarClient.ServiceReadiness(context.Background(), &emptypb.Empty{})
+	if err != nil {
+		internalError(rw, r, fmt.Sprintf("Request failed with error: %v", err.Error()))
+		return
+	}
+
+	res := map[string]interface{}{
+		"message":   "Health check results.",
+		"destroyer": destoyerReadiness,
+		"deathstar": deathstarReadiness,
+	}
+	render.JSON(rw, r, res)
 }
