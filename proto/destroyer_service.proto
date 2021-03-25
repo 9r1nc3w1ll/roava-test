@@ -8,7 +8,7 @@ import "target_message.proto";
 
 service Destroyer {
   rpc AcquireTargets(AcquireTargetsRequest) returns (google.protobuf.Empty);
-  rpc ListTargets (google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc ListTargets (google.protobuf.Empty) returns (ListTargetsResponse);
 }
 
 message TargetsAcquiredPayload {
@@ -20,6 +20,10 @@ message TargetsAcquiredPayload {
 
 message AcquireTargetsRequest {
   int64 number = 1;
+}
+
+message ListTargetsResponse {
+  repeated Target data = 1;
 }
 
 // TODO: Create responses (convention)

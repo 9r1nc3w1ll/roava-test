@@ -11,12 +11,14 @@ import (
 	"github.com/apache/pulsar-client-go/pulsar"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // destroyer - implements all destroyer methods
 type destroyer struct {
+	DbConn       *pgx.Conn
 	PubSubClient pulsar.Client
 }
 
@@ -38,11 +40,11 @@ func (s *destroyer) AcquireTargets(ctx context.Context, req *pb.AcquireTargetsRe
 		})
 
 		// Create Pulsar producer
-		producer, e := s.PubSubClient.CreateProducer(pulsar.ProducerOptions{
+		producer, err := s.PubSubClient.CreateProducer(pulsar.ProducerOptions{
 			Topic: "targets-acquired-event",
 		})
-		if e != nil {
-			return &emptypb.Empty{}, e
+		if err != nil {
+			return &emptypb.Empty{}, err
 		}
 
 		// Build message payload
@@ -53,9 +55,9 @@ func (s *destroyer) AcquireTargets(ctx context.Context, req *pb.AcquireTargetsRe
 			CreatedOn: time.Now().UTC().Format(time.RFC3339),
 		}
 
-		jsonBytes, e := protojson.Marshal(&payload)
-		if e != nil {
-			return &emptypb.Empty{}, e
+		jsonBytes, err := protojson.Marshal(&payload)
+		if err != nil {
+			return &emptypb.Empty{}, err
 		}
 
 		// Send pub-sub message
@@ -71,6 +73,21 @@ func (s *destroyer) AcquireTargets(ctx context.Context, req *pb.AcquireTargetsRe
 	return &empty.Empty{}, nil
 }
 
-func (s *destroyer) ListTargets(ctx context.Context, _ *empty.Empty) (*empty.Empty, error) {
-	return &empty.Empty{}, nil
+func (s *destroyer) ListTargets(ctx context.Context, _ *empty.Empty) (*pb.ListTargetsResponse, error) {
+	res := pb.ListTargetsResponse{}
+	rows, err := s.DbConn.Query(context.Background(), "SELECT id, message, created_on, updated_on FROM targets")
+	if err != nil {
+		return &res, err
+	}
+
+	for rows.Next() {
+		t := pb.Target{}
+
+		if err := rows.Scan(&t.Id, &t.Message, &t.CreatedOn, &t.UpdatedOn); err != nil {
+			return &res, err
+		}
+		res.Data = append(res.Data, &t)
+	}
+
+	return &res, nil
 }
