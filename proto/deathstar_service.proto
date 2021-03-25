@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package pb;
+option go_package = "/pb";
+
+import "google/protobuf/empty.proto";
+import "status_checks.proto";
+
+service deathstar {
+  rpc health_check(google.protobuf.Empty) returns (health_check_response);
+  rpc service_readiness(google.protobuf.Empty) returns (service_readiness_response);
+}

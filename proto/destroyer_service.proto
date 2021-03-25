@@ -5,6 +5,7 @@ option go_package = "/pb";
 
 import "google/protobuf/empty.proto";
 import "target.proto";
+import "status_checks.proto";
 
 service destroyer {
   rpc acquire_targets(acquire_targets_request) returns (google.protobuf.Empty);

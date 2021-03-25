@@ -36,9 +36,11 @@ func main() {
 	common.ExitOnError(err, "Could not instantiate Pulsar client: %v")
 	defer pubSubClient.Close()
 
+	// Initialize gRPC TCP Listener
 	tcpListener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	common.ExitOnError(err, "Failed to start listener . %v")
 
+	// Initialize gRPC server
 	server := grpc.NewServer()
 	pb.RegisterDestroyerServer(server, &destroyerService{
 		PubSubClient: pubSubClient,
