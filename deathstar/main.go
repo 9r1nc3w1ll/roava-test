@@ -37,6 +37,7 @@ func main() {
 	})
 	common.ExitOnError(err, "Failed to connect to pulsar")
 	defer consumer.Close()
+	log.Println("deathstar is online.")
 
 	// Pub-Sub listener routine
 	go pubSubListener(consumer, dbConn)

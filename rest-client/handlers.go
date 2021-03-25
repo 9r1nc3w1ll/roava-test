@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/render"
+	"github.com/golang/protobuf/ptypes/empty"
 )
 
 // REST request handlers
@@ -34,12 +35,26 @@ func acquireTargets(rw http.ResponseWriter, r *http.Request) {
 		Number: number,
 	}
 
-	_, e := destroyerClient.AcquireTargets(context.Background(), req)
-	if e != nil {
-		internalError(rw, r, fmt.Sprintf("Request failed with error: %v", e.Error()))
+	_, err := destroyerClient.AcquireTargets(context.Background(), req)
+	if err != nil {
+		internalError(rw, r, fmt.Sprintf("Request failed with error: %v", err.Error()))
 		return
 	}
 
 	res := map[string]interface{}{"message": "Target acquired and published."}
+	render.JSON(rw, r, res)
+}
+
+func listTargets(rw http.ResponseWriter, r *http.Request) {
+	targets, err := destroyerClient.ListTargets(context.Background(), &empty.Empty{})
+	if err != nil {
+		internalError(rw, r, fmt.Sprintf("Request failed with error: %v", err.Error()))
+		return
+	}
+
+	res := map[string]interface{}{
+		"message": "Target acquired and published.",
+		"targets": targets,
+	}
 	render.JSON(rw, r, res)
 }

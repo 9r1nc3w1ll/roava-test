@@ -38,36 +38,34 @@ func (s *destroyer) AcquireTargets(ctx context.Context, req *pb.AcquireTargetsRe
 			CreatedOn: t,
 			UpdatedOn: t,
 		})
-
-		// Create Pulsar producer
-		producer, err := s.PubSubClient.CreateProducer(pulsar.ProducerOptions{
-			Topic: "targets-acquired-event",
-		})
-		if err != nil {
-			return &emptypb.Empty{}, err
-		}
-
-		// Build message payload
-		payload := pb.TargetsAcquiredPayload{
-			Id:        uuid.New().String(),
-			Name:      "targets.acquired",
-			Data:      targets,
-			CreatedOn: time.Now().UTC().Format(time.RFC3339),
-		}
-
-		jsonBytes, err := protojson.Marshal(&payload)
-		if err != nil {
-			return &emptypb.Empty{}, err
-		}
-
-		// Send pub-sub message
-		producer.Send(context.Background(), &pulsar.ProducerMessage{
-			Payload: jsonBytes,
-		})
-
-		// Close producer
-		defer producer.Close()
 	}
+
+	// Create Pulsar producer
+	producer, err := s.PubSubClient.CreateProducer(pulsar.ProducerOptions{
+		Topic: "targets-acquired-event",
+	})
+	if err != nil {
+		return &emptypb.Empty{}, err
+	}
+	defer producer.Close()
+
+	// Build message payload
+	payload := pb.TargetsAcquiredPayload{
+		Id:        uuid.New().String(),
+		Name:      "targets.acquired",
+		Data:      targets,
+		CreatedOn: time.Now().UTC().Format(time.RFC3339),
+	}
+
+	jsonBytes, err := protojson.Marshal(&payload)
+	if err != nil {
+		return &emptypb.Empty{}, err
+	}
+
+	// Send pub-sub message
+	producer.Send(context.Background(), &pulsar.ProducerMessage{
+		Payload: jsonBytes,
+	})
 
 	log.Printf("%d target(s) acquired\n", req.GetNumber())
 	return &empty.Empty{}, nil

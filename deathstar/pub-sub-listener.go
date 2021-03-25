@@ -30,7 +30,7 @@ func pubSubListener(consumer pulsar.Consumer, dbConn *pgx.Conn) {
 				}
 			}
 
-			log.Println("Targets saved to database.")
+			log.Printf("%d Target(s) saved to database. \n", len(payload.Data))
 			consumer.Ack(msg)
 		}
 	}

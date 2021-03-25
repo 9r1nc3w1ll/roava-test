@@ -32,8 +32,9 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 
-	// Acquire targets endpoint
+	// REST endpoints
 	r.Get("/acquire-targets", acquireTargets)
+	r.Get("/list-targets", listTargets)
 
 	// Start REST server
 	srv := http.Server{
