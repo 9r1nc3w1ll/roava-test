@@ -40,7 +40,7 @@ func main() {
 	common.ExitOnError(err, "Failed to start listener . %v")
 
 	server := grpc.NewServer()
-	pb.RegisterDestroyerServer(server, &destroyer{
+	pb.RegisterDestroyerServer(server, &destroyerService{
 		PubSubClient: pubSubClient,
 		DbConn:       dbConn,
 	})

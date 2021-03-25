@@ -4,32 +4,31 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
+	"roava-test/common"
 	pb "roava-test/pb"
 
 	"github.com/apache/pulsar-client-go/pulsar"
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// destroyer - implements all destroyer methods
-type destroyer struct {
+// destroyerService - implements all destroyerService methods
+type destroyerService struct {
 	DbConn       *pgx.Conn
 	PubSubClient pulsar.Client
 }
 
 // AcquireTargets - implements AcquireTargets RPC
-func (s *destroyer) AcquireTargets(ctx context.Context, req *pb.AcquireTargetsRequest) (*empty.Empty, error) {
+func (s *destroyerService) AcquireTargets(ctx context.Context, req *pb.AcquireTargetsRequest) (*empty.Empty, error) {
 	targets := []*pb.Target{}
 
 	for i := int64(0); i < req.Number; i++ {
 		// Create reusable Target properties
-		t := time.Now().UTC().Format(time.RFC3339)
-		id := uuid.New().String()
+		t := common.Timestamp()
+		id := common.UUID()
 
 		// Create and append Target to slice
 		targets = append(targets, &pb.Target{
@@ -51,10 +50,10 @@ func (s *destroyer) AcquireTargets(ctx context.Context, req *pb.AcquireTargetsRe
 
 	// Build message payload
 	payload := pb.TargetsAcquiredPayload{
-		Id:        uuid.New().String(),
+		Id:        common.UUID(),
 		Name:      "targets.acquired",
 		Data:      targets,
-		CreatedOn: time.Now().UTC().Format(time.RFC3339),
+		CreatedOn: common.Timestamp(),
 	}
 
 	jsonBytes, err := protojson.Marshal(&payload)
@@ -72,7 +71,7 @@ func (s *destroyer) AcquireTargets(ctx context.Context, req *pb.AcquireTargetsRe
 }
 
 // ListTargets - Implements ListTargets RPC
-func (s *destroyer) ListTargets(ctx context.Context, _ *empty.Empty) (*pb.ListTargetsResponse, error) {
+func (s *destroyerService) ListTargets(ctx context.Context, _ *empty.Empty) (*pb.ListTargetsResponse, error) {
 	res := pb.ListTargetsResponse{}
 	rows, err := s.DbConn.Query(context.Background(), "SELECT id, message, created_on, updated_on FROM targets")
 	if err != nil {
@@ -87,6 +86,37 @@ func (s *destroyer) ListTargets(ctx context.Context, _ *empty.Empty) (*pb.ListTa
 		}
 		res.Data = append(res.Data, &t)
 	}
+
+	return &res, nil
+}
+
+func (s *destroyerService) HealthCheck(ctx context.Context, _ *empty.Empty) (*pb.HealthCheckResponse, error) {
+	res := pb.HealthCheckResponse{
+		Id:        common.UUID(),
+		Service:   "destroyer",
+		Timestamp: common.Timestamp(),
+	}
+	return &res, nil
+}
+
+func (s *destroyerService) ServiceReadiness(ctx context.Context, _ *empty.Empty) (*pb.ServiceReadinessResponse, error) {
+	res := pb.ServiceReadinessResponse{
+		Id:        common.UUID(),
+		Service:   "destroyer",
+		Timestamp: common.Timestamp(),
+	}
+
+	res.Dependencies = append(res.Dependencies, &pb.DependencyStatus{
+		Name:   "postgres",
+		Url:    s.DbConn.Config().ConnString(),
+		Active: !s.DbConn.IsClosed(),
+	})
+
+	res.Dependencies = append(res.Dependencies, &pb.DependencyStatus{
+		Name:   "apache pulsar",
+		Url:    "pulsar://pulsar:6650",
+		Active: s.PubSubClient != nil,
+	})
 
 	return &res, nil
 }
