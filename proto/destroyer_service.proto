@@ -27,22 +27,3 @@ message acquire_targets_request {
 message list_targets_response {
   repeated target data = 1;
 }
-
-message health_check_response {
-  string id = 1;
-  string service = 2;
-  string timestamp = 3;
-}
-
-message service_readiness_response {
-  string id = 1;
-  string service = 2;
-  repeated dependency_status dependencies = 3;
-  string timestamp = 4;
-}
-
-message dependency_status {
-  string name = 1;
-  string url = 2;
-  bool active = 3;
-}

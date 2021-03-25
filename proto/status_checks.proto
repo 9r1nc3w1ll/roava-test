@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package pb;
+option go_package = "/pb";
+
+message health_check_response {
+  string id = 1;
+  string service = 2;
+  string timestamp = 3;
+}
+
+message service_readiness_response {
+  string id = 1;
+  string service = 2;
+  repeated dependency_status dependencies = 3;
+  string timestamp = 4;
+}
+
+message dependency_status {
+  string name = 1;
+  string url = 2;
+  bool active = 3;
+}
