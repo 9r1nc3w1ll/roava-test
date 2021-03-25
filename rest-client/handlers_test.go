@@ -28,7 +28,7 @@ func TestAcquireTargets(t *testing.T) {
 	h := http.HandlerFunc(mockMux.acquireTargets)
 	h.ServeHTTP(rr, req)
 
-	if req.Response.StatusCode != 200 {
+	if rr.Code != http.StatusOK {
 		t.Errorf("Expected 200 status code but got %d", req.Response.StatusCode)
 	}
 }
@@ -48,7 +48,7 @@ func TestListTargets(t *testing.T) {
 	h := http.HandlerFunc(mockMux.listTargets)
 	h.ServeHTTP(rr, req)
 
-	if req.Response.StatusCode != 200 {
+	if rr.Code != http.StatusOK {
 		t.Errorf("Expected 200 status code but got %d", req.Response.StatusCode)
 	}
 }
