@@ -14,9 +14,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-var destroyerClient pb.DestroyerClient
-var deathstarClient pb.DeathstarClient
-
 func main() {
 	port := ":3000"
 	destroyerServerAddress := "0.0.0.0:5000"
@@ -28,7 +25,7 @@ func main() {
 	defer destroyerConn.Close()
 
 	// Destroyer gRPC Client
-	destroyerClient = pb.NewDestroyerClient(destroyerConn)
+	destroyerClient := pb.NewDestroyerClient(destroyerConn)
 
 	// Connect to Deathstar
 	deathstarConn, err := grpc.Dial(deathstarServerAddress, grpc.WithInsecure())
@@ -36,17 +33,23 @@ func main() {
 	defer deathstarConn.Close()
 
 	// Deathstar gRPC client
-	deathstarClient = pb.NewDeathstarClient(deathstarConn)
+	deathstarClient := pb.NewDeathstarClient(deathstarConn)
+
+	// Build request mux
+	mx := Mux{
+		DestroyerClient: destroyerClient,
+		DeathstarClient: deathstarClient,
+	}
 
 	// Setup HTTP endpoints
 	r := chi.NewRouter()
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 
 	// REST endpoints
-	r.Get("/acquire-targets", acquireTargets)
-	r.Get("/list-targets", listTargets)
-	r.Get("/do-health-checks", healthChecks)
-	r.Get("/service-readiness", serviceReadiness)
+	r.Get("/acquire-targets", mx.acquireTargets)
+	r.Get("/list-targets", mx.listTargets)
+	r.Get("/do-health-checks", mx.healthChecks)
+	r.Get("/service-readiness", mx.serviceReadiness)
 
 	// Start REST server
 	srv := http.Server{

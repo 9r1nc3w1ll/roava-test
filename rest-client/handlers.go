@@ -12,8 +12,13 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+type Mux struct {
+	DestroyerClient pb.DestroyerClient
+	DeathstarClient pb.DeathstarClient
+}
+
 // REST request handlers
-func acquireTargets(rw http.ResponseWriter, r *http.Request) {
+func (m *Mux) acquireTargets(rw http.ResponseWriter, r *http.Request) {
 	number := int64(1) // Default number of targets
 	targets := r.URL.Query().Get("targets")
 
@@ -36,7 +41,7 @@ func acquireTargets(rw http.ResponseWriter, r *http.Request) {
 		Number: number,
 	}
 
-	_, err := destroyerClient.AcquireTargets(context.Background(), req)
+	_, err := m.DestroyerClient.AcquireTargets(context.Background(), req)
 	if err != nil {
 		internalError(rw, r, fmt.Sprintf("Request failed with error: %v", err.Error()))
 		return
@@ -46,8 +51,8 @@ func acquireTargets(rw http.ResponseWriter, r *http.Request) {
 	render.JSON(rw, r, res)
 }
 
-func listTargets(rw http.ResponseWriter, r *http.Request) {
-	targets, err := destroyerClient.ListTargets(context.Background(), &empty.Empty{})
+func (m *Mux) listTargets(rw http.ResponseWriter, r *http.Request) {
+	targets, err := m.DestroyerClient.ListTargets(context.Background(), &empty.Empty{})
 	if err != nil {
 		internalError(rw, r, fmt.Sprintf("Request failed with error: %v", err.Error()))
 		return
@@ -60,14 +65,14 @@ func listTargets(rw http.ResponseWriter, r *http.Request) {
 	render.JSON(rw, r, res)
 }
 
-func healthChecks(rw http.ResponseWriter, r *http.Request) {
-	destoyerHealth, err := destroyerClient.HealthCheck(context.Background(), &emptypb.Empty{})
+func (m *Mux) healthChecks(rw http.ResponseWriter, r *http.Request) {
+	destoyerHealth, err := m.DestroyerClient.HealthCheck(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		internalError(rw, r, fmt.Sprintf("Request failed with error: %v", err.Error()))
 		return
 	}
 
-	deathstarHealth, err := deathstarClient.HealthCheck(context.Background(), &emptypb.Empty{})
+	deathstarHealth, err := m.DeathstarClient.HealthCheck(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		internalError(rw, r, fmt.Sprintf("Request failed with error: %v", err.Error()))
 		return
@@ -81,14 +86,14 @@ func healthChecks(rw http.ResponseWriter, r *http.Request) {
 	render.JSON(rw, r, res)
 }
 
-func serviceReadiness(rw http.ResponseWriter, r *http.Request) {
-	destoyerReadiness, err := destroyerClient.ServiceReadiness(context.Background(), &emptypb.Empty{})
+func (m *Mux) serviceReadiness(rw http.ResponseWriter, r *http.Request) {
+	destoyerReadiness, err := m.DestroyerClient.ServiceReadiness(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		internalError(rw, r, fmt.Sprintf("Request failed with error: %v", err.Error()))
 		return
 	}
 
-	deathstarReadiness, err := deathstarClient.ServiceReadiness(context.Background(), &emptypb.Empty{})
+	deathstarReadiness, err := m.DeathstarClient.ServiceReadiness(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		internalError(rw, r, fmt.Sprintf("Request failed with error: %v", err.Error()))
 		return
